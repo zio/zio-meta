@@ -1,4 +1,4 @@
-package zio.meta
+package zio.meta.model
 
 enum Type[A]:
   self =>

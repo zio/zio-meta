@@ -1,4 +1,4 @@
-package zio.meta
+package zio.meta.model
 
 object naming:
   sealed trait Name
