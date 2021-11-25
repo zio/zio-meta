@@ -27,14 +27,16 @@ addCommandAlias(
   "testJVM",
   Seq(
     "internalMacrosJVM/test",
-    "modelJVM/test"
+    "coreJVM/test",
+    "coreTestsJVM/test"
   ).mkString(";")
 )
 addCommandAlias(
   "testJS",
   Seq(
     "internalMacrosJS/test",
-    "modelJS/test"
+    "coreJS/test",
+    "coreTestsJS/test"
   ).mkString(";")
 )
 addCommandAlias(
@@ -52,8 +54,10 @@ lazy val root = project
     unusedCompileDependenciesFilter -= moduleFilter("org.scala-js", "scalajs-library")
   )
   .aggregate(
-    modelJVM,
-    modelJS,
+    coreJVM,
+    coreJS,
+    coreTestsJVM,
+    coreTestsJS,
     internalMacrosJVM,
     internalMacrosJS,
     internalMacrosNative
@@ -71,11 +75,11 @@ lazy val internalMacrosJVM    = internalMacros.jvm.settings(dottySettings)
 lazy val internalMacrosJS     = internalMacros.js.settings(dottySettings)
 lazy val internalMacrosNative = internalMacros.native.settings(nativeSettings)
 
-lazy val model = crossProject(JSPlatform, JVMPlatform)
-  .in(file("model"))
-  .settings(stdSettings("zio-meta-model", Scala3x))
+lazy val core = crossProject(JSPlatform, JVMPlatform)
+  .in(file("core"))
+  .settings(stdSettings("zio-meta", Scala3x))
   .settings(crossProjectSettings)
-  .settings(buildInfoSettings("zio.meta.model"))
+  .settings(buildInfoSettings("zio.meta"))
   .settings(
     libraryDependencies ++= Seq(
       "dev.zio" %%% "izumi-reflect" % izumiReflectVersion,
@@ -86,16 +90,39 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(internalMacros)
 
-lazy val modelJS = model.js
+lazy val coreJS = core.js
   .settings(jsSettings)
   // .settings(dottySettings)
   .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
   .settings(scalaJSUseMainModuleInitializer := true)
 
-lazy val modelJVM = model.jvm
+lazy val coreJVM = core.jvm
   .settings(dottySettings)
   .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
   .settings(scalaReflectTestSettings)
+
+lazy val coreTests = crossProject(JSPlatform, JVMPlatform)
+  .in(file("core-tests"))
+  .dependsOn(core)
+  .settings(stdSettings("core-tests"))
+  .settings(crossProjectSettings)
+  .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
+  .settings(buildInfoSettings("zio.meta.tests"))
+  .settings(publish / skip := true)
+  // .settings(
+  //   Compile / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
+  // )
+  .enablePlugins(BuildInfoPlugin)
+
+lazy val coreTestsJVM = coreTests.jvm
+  .settings(dottySettings)
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
+  .configure(_.enablePlugins(JCStressPlugin))
+  .settings(replSettings)
+
+lazy val coreTestsJS = coreTests.js
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
+  .settings(dottySettings)
 
 // lazy val docs = project
 //   .in(file("zio-meta-docs"))
@@ -105,11 +132,11 @@ lazy val modelJVM = model.jvm
 //     moduleName := "zio-meta-docs",
 //     scalacOptions -= "-Yno-imports",
 //     scalacOptions -= "-Xfatal-warnings",
-//     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(modelJVM),
+//     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(coreJVM),
 //     ScalaUnidoc / unidoc / target := (LocalRootProject / baseDirectory).value / "website" / "static" / "api",
 //     cleanFiles += (ScalaUnidoc / unidoc / target).value,
 //     docusaurusCreateSite := docusaurusCreateSite.dependsOn(Compile / unidoc).value,
 //     docusaurusPublishGhpages := docusaurusPublishGhpages.dependsOn(Compile / unidoc).value
 //   )
-//   .dependsOn(modelJVM)
+//   .dependsOn(coreJVM)
 //   .enablePlugins(MdocPlugin, DocusaurusPlugin, ScalaUnidocPlugin)
