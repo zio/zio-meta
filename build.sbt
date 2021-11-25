@@ -25,18 +25,25 @@ addCommandAlias("check", "; scalafmtSbtCheck; scalafmtCheckAll; compile:scalafix
 
 addCommandAlias(
   "testJVM",
-  ";modelJVM/test"
+  Seq(
+    "internalMacrosJVM/test",
+    "modelJVM/test"
+  ).mkString(";")
 )
 addCommandAlias(
   "testJS",
-  ";modelJS/test"
+  Seq(
+    "internalMacrosJS/test",
+    "modelJS/test"
+  ).mkString(";")
 )
-// addCommandAlias(
-//   "testNative",
-//   ";modelNative/test:compile"
-// )
+addCommandAlias(
+  "testNative",
+  ";internalMacrosNative/test:compile"
+)
 
-val zioVersion = "1.0.12"
+val zioVersion          = "1.0.12"
+val izumiReflectVersion = "2.0.8"
 
 lazy val root = project
   .in(file("."))
@@ -46,9 +53,23 @@ lazy val root = project
   )
   .aggregate(
     modelJVM,
-    modelJS
+    modelJS,
+    internalMacrosJVM,
+    internalMacrosJS,
+    internalMacrosNative
     // docs
   )
+
+lazy val internalMacros = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("internal-macros"))
+  .settings(stdSettings("zio-meta-internal-macros", Scala3x, Scala213))
+  .settings(crossProjectSettings)
+  .settings(macroDefinitionSettings)
+  .settings(macroExpansionSettings)
+
+lazy val internalMacrosJVM    = internalMacros.jvm.settings(dottySettings)
+lazy val internalMacrosJS     = internalMacros.js.settings(dottySettings)
+lazy val internalMacrosNative = internalMacros.native.settings(nativeSettings)
 
 lazy val model = crossProject(JSPlatform, JVMPlatform)
   .in(file("model"))
@@ -57,15 +78,17 @@ lazy val model = crossProject(JSPlatform, JVMPlatform)
   .settings(buildInfoSettings("zio.meta.model"))
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % zioVersion % Test
+      "dev.zio" %%% "izumi-reflect" % izumiReflectVersion,
+      "dev.zio" %%% "zio"           % zioVersion % Test
     )
   )
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
   .enablePlugins(BuildInfoPlugin)
+  .dependsOn(internalMacros)
 
 lazy val modelJS = model.js
   .settings(jsSettings)
-  .settings(dottySettings)
+  // .settings(dottySettings)
   .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
   .settings(scalaJSUseMainModuleInitializer := true)
 
