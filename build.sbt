@@ -128,14 +128,14 @@ lazy val zioMetaCompatJVM = zioMetaCompat.jvm
 
 lazy val zioMetaCore = crossProject(JSPlatform, JVMPlatform)
   .in(file("zio-meta-core"))
-  .settings(std3xSettings("zio-meta-core"))
+  .settings(stdSettings("zio-meta-core", Scala3x::Nil))
   .settings(crossProjectSettings)
   .settings(buildInfoSettings("zio.meta.core"))
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio"          % zioVersion,
-      "dev.zio" %% "zio-test"     % zioVersion % Test,
-      "dev.zio" %% "zio-test-sbt" % zioVersion % Test
+      "dev.zio" %%% "zio"          % zioVersion,
+      "dev.zio" %%% "zio-test"     % zioVersion % Test,
+      "dev.zio" %%% "zio-test-sbt" % zioVersion % Test
     )
   )
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))

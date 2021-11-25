@@ -28,9 +28,9 @@ object BuildHelper {
     case None    => versions("3.1")
   }
   val Scala3x:String = ScalaDotty
-  val Scala2Versions:Seq[String] = Seq(Scala213)
-  val Scala3Versions:Seq[String] = Seq(ScalaDotty)
-  val CrossScalaVersions:Seq[String] = Seq(Scala213, ScalaDotty)
+  val Scala2Versions:List[String] = List(Scala213)
+  val Scala3Versions:List[String] = List(ScalaDotty)
+  val CrossScalaVersions:Seq[String] = List(Scala213, ScalaDotty)
 
   val SilencerVersion = "1.7.5"
 
@@ -237,42 +237,44 @@ object BuildHelper {
     }
   )
 
-  def stdSettings(prjName: String) = Seq(
-    name := s"$prjName",
-    crossScalaVersions := Scala2Versions,
-    ThisBuild / scalaVersion := Scala213,
-    scalacOptions := stdOptions ++ extraOptions(scalaVersion.value, optimize = !isSnapshot.value),
-    libraryDependencies ++= {
-      if (scalaVersion.value == ScalaDotty)
-        Seq(
-          "com.github.ghik" % s"silencer-lib_$Scala213" % SilencerVersion % Provided
-        )
-      else
-        Seq(
-          "com.github.ghik" % "silencer-lib"            % SilencerVersion % Provided cross CrossVersion.full,
-          compilerPlugin("com.github.ghik" % "silencer-plugin" % SilencerVersion cross CrossVersion.full)
-        )
-    },
-    semanticdbEnabled := scalaVersion.value != ScalaDotty, // enable SemanticDB
-    semanticdbOptions += "-P:semanticdb:synthetics:on",
-    semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
-    ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value),
-    ThisBuild / scalafixDependencies ++= List(
-      "com.github.liancheng" %% "organize-imports" % "0.5.0",
-      "com.github.vovapolu"  %% "scaluzzi"         % "0.1.18"
-    ),
-    Test / parallelExecution := true,
-    incOptions ~= (_.withLogRecompileOnMacro(false)),
-    autoAPIMappings := true,
-    unusedCompileDependenciesFilter -= moduleFilter("org.scala-js", "scalajs-library")
-  )
+  def stdSettings(prjName: String, givenScalaVersions: ::[String]) = {
+    val primaryScalaVersion = givenScalaVersions.head
+    val isDotty = CrossVersion.partialVersion(primaryScalaVersion) match {
+      case Some((3, _)) => true
+      case _            => false
+    }
 
-  def std3xSettings(prjName:String) = stdSettings(prjName) ++
     Seq(
-      scalaVersion := Scala3x,
-      crossScalaVersions := Scala3Versions
-    ) ++
-    dottySettings
+      name := s"$prjName",
+      crossScalaVersions := givenScalaVersions,
+      ThisBuild / scalaVersion := primaryScalaVersion,
+      scalacOptions := stdOptions ++ extraOptions(scalaVersion.value, optimize = !isSnapshot.value),
+      libraryDependencies ++= {
+        if (scalaVersion.value == ScalaDotty)
+          Seq(
+            "com.github.ghik" % s"silencer-lib_$Scala213" % SilencerVersion % Provided
+          )
+        else
+          Seq(
+            "com.github.ghik" % "silencer-lib"            % SilencerVersion % Provided cross CrossVersion.full,
+            compilerPlugin("com.github.ghik" % "silencer-plugin" % SilencerVersion cross CrossVersion.full)
+          )
+      },
+      semanticdbEnabled := scalaVersion.value != ScalaDotty, // enable SemanticDB
+      semanticdbOptions += "-P:semanticdb:synthetics:on",
+      semanticdbVersion := scalafixSemanticdb.revision, // use Scalafix compatible version
+      ThisBuild / scalafixScalaBinaryVersion := CrossVersion.binaryScalaVersion(scalaVersion.value),
+      ThisBuild / scalafixDependencies ++= List(
+        "com.github.liancheng" %% "organize-imports" % "0.5.0",
+        "com.github.vovapolu"  %% "scaluzzi"         % "0.1.18"
+      ),
+      Test / parallelExecution := true,
+      incOptions ~= (_.withLogRecompileOnMacro(false)),
+      autoAPIMappings := true,
+      unusedCompileDependenciesFilter -= moduleFilter("org.scala-js", "scalajs-library")
+    ) ++ (if(isDotty) dottySettings else Seq.empty)
+  }
+
 
   def macroExpansionSettings = Seq(
     scalacOptions ++= {

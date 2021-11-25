@@ -24,12 +24,15 @@ object naming:
   object TypeName:
     def apply(name:String):TypeName = Local(name)
 
-  enum PackageName:
-    case Root
-    case Child(name:String)
+  opaque type PackageNameSegment = String
+
+  final case class PackageName(parts:List[PackageNameSegment]) { self =>
+    def fullName:String = parts.mkString(".")
+    override def toString:String = fullName
+  }
 
   object PackageName:
+    val Root:PackageName = PackageName(Nil)
+
     def apply(name:String):PackageName =
-      name.split("\\.").toList match
-        case Nil => Root
-        case head::tail => Child(tail.foldLeft(head)(_ + "." + _))
+      PackageName(name.split("\\.").toList)

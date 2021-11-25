@@ -37,3 +37,8 @@ trait TypeModule:
     def typeParams: List[TypeName.Qualified]
 
 end TypeModule
+
+
+// Name - optional and may bot exist
+// Rendering - a rendering of the name
+// Id - stable
