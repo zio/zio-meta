@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package zio.meta.model
+package zio.meta
+
 import zio.meta.IsNotIntersection
 import izumi.reflect.Tag
 import izumi.reflect.macrortti.LightTypeTag
@@ -114,7 +115,7 @@ final class ZMetadata[+R] private (
             service = curService.asInstanceOf[A]
           }
         }
-        if (service == null) throw new Error(s"Defect in zio.ZMetadata: Could not find ${tag} inside ${self}")
+        if (service == null) throw new Error(s"Defect in zio.meta.ZMetadata: Could not find ${tag} inside ${self}")
         else {
           self.cache = self.cache + (tag -> service)
           service
