@@ -1,5 +1,4 @@
-package zio.meta.model
-
+package zio.meta
 
 import scala.quoted.*
 

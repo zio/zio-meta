@@ -15,6 +15,7 @@
  */
 
 package zio.meta.model
+import zio.meta.IsNotIntersection
 import izumi.reflect.Tag
 import izumi.reflect.macrortti.LightTypeTag
 
