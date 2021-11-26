@@ -1,4 +1,4 @@
-package zio.meta.model
+package zio.meta
 
 private[meta] trait VersionSpecific {
   type Tag[A] = izumi.reflect.Tag[A]
@@ -35,10 +35,10 @@ private[meta] trait VersionSpecific {
 
   type LightTypeTag = izumi.reflect.macrortti.LightTypeTag
 
-  private[zio] def taggedIsSubtype(left: LightTypeTag, right: LightTypeTag): Boolean =
+  private[meta] def taggedIsSubtype(left: LightTypeTag, right: LightTypeTag): Boolean =
     left <:< right
 
-  private[zio] def taggedTagType[A](tagged: Tag[A]): LightTypeTag =
+  private[meta] def taggedTagType[A](tagged: Tag[A]): LightTypeTag =
     tagged.tag
 
   /**
@@ -46,6 +46,6 @@ private[meta] trait VersionSpecific {
    *
    * `Tag[A with B]` should produce `Set(Tag[A], Tag[B])`
    */
-  private[zio] def taggedGetServices[A](t: LightTypeTag): Set[LightTypeTag] =
+  private[meta] def taggedGetServices[A](t: LightTypeTag): Set[LightTypeTag] =
     t.decompose
 }

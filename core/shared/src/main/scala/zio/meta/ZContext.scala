@@ -65,7 +65,7 @@ final class ZContext[+R] private (
     val missingServices = set.filterNot(tag => map.keys.exists(taggedIsSubtype(_, tag)))
     if (missingServices.nonEmpty) {
       throw new Error(
-        s"Defect in zio.ZContext: ${missingServices} statically known to be contained within the environment are missing"
+        s"Defect in zio.meta.ZContext: ${missingServices} statically known to be contained within the context are missing"
       )
     }
 

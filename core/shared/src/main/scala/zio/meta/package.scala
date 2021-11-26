@@ -1,6 +1,6 @@
 package zio
 
-import zio.meta.model.VersionSpecific
+import zio.meta.VersionSpecific
 
 package object meta extends VersionSpecific {
   trait IsNotIntersection[A] extends Serializable

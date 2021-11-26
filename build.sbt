@@ -66,7 +66,7 @@ lazy val root = project
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .in(file("core"))
-  .settings(stdSettings("zio-meta", Scala3x))
+  .settings(stdSettings("zio-meta", Scala3x, Scala213))
   .settings(crossProjectSettings)
   .settings(buildInfoSettings("zio.meta"))
   .settings(
@@ -75,6 +75,8 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
       "dev.zio" %%% "zio"           % zioVersion % Test
     )
   )
+  .settings(macroDefinitionSettings)
+  // .settings(
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
   .enablePlugins(BuildInfoPlugin)
   .dependsOn(macros)
@@ -92,13 +94,12 @@ lazy val coreJVM = core.jvm
 
 lazy val coreTests = crossProject(JSPlatform, JVMPlatform)
   .in(file("core-tests"))
-  .dependsOn(core)
+  .dependsOn(macros, core)
   .settings(stdSettings("core-tests"))
   .settings(crossProjectSettings)
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
   .settings(buildInfoSettings("zio.meta.tests"))
   .settings(publish / skip := true)
-  // .settings(
   //   Compile / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
   // )
   .enablePlugins(BuildInfoPlugin)

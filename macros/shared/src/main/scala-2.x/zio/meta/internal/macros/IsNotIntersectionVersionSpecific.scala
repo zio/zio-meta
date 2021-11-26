@@ -28,7 +28,7 @@ class InternalMacros(val c: blackbox.Context) {
     tpe.widen.dealias match {
       case x if x.typeSymbol.isParameter =>
         try {
-          val isNotIntersectionType = tq"_root_.zio.internal.IsNotIntersection[$tpe]"
+          val isNotIntersectionType = tq"_root_.zio.meta.internal.IsNotIntersection[$tpe]"
           c.inferImplicitValue(isNotIntersectionType.tpe, silent = false)
         } catch {
           case _: Throwable =>
@@ -37,7 +37,7 @@ class InternalMacros(val c: blackbox.Context) {
       case tpe if isIntersection(tpe) =>
         c.abort(c.enclosingPosition, s"You must not use an intersection type, yet have provided: $tpe")
       case _ =>
-        q"new _root_.zio.IsNotIntersection[$tpe] {}"
+        q"new _root_.zio.meta.IsNotIntersection[$tpe] {}"
     }
   }
 
