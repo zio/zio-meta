@@ -20,24 +20,24 @@ import zio.meta.IsNotIntersection
 import izumi.reflect.Tag
 import izumi.reflect.macrortti.LightTypeTag
 
-final class ZMetadata[+R] private (
+final class ZContext[+R] private (
     private val map: Map[LightTypeTag, (Any, Int)],
     private val index: Int,
     private var cache: Map[LightTypeTag, Any] = Map.empty
 ) extends Serializable { self =>
 
-  def ++[R1: Tag](that: ZMetadata[R1]): ZMetadata[R with R1] =
+  def ++[R1: Tag](that: ZContext[R1]): ZContext[R with R1] =
     self.union[R1](that)
 
   /**
    * Adds a service to the environment.
    */
-  def add[A](a: A)(implicit ev: IsNotIntersection[A], tagged: Tag[A]): ZMetadata[R with A] =
-    new ZMetadata(self.map + (taggedTagType(tagged) -> (a -> index)), index + 1)
+  def add[A](a: A)(implicit ev: IsNotIntersection[A], tagged: Tag[A]): ZContext[R with A] =
+    new ZContext(self.map + (taggedTagType(tagged) -> (a -> index)), index + 1)
 
   override def equals(that: Any): Boolean = that match {
-    case that: ZMetadata[_] => map == that.map
-    case _                  => false
+    case that: ZContext[_] => map == that.map
+    case _                 => false
   }
 
   /**
@@ -58,21 +58,21 @@ final class ZMetadata[+R] private (
   /**
    * Prunes the environment to the set of services statically known to be contained within it.
    */
-  def prune[R1 >: R](implicit tagged: Tag[R1]): ZMetadata[R1] = {
+  def prune[R1 >: R](implicit tagged: Tag[R1]): ZContext[R1] = {
     val tag = taggedTagType(tagged)
     val set = taggedGetServices(tag)
 
     val missingServices = set.filterNot(tag => map.keys.exists(taggedIsSubtype(_, tag)))
     if (missingServices.nonEmpty) {
       throw new Error(
-        s"Defect in zio.ZMetadata: ${missingServices} statically known to be contained within the environment are missing"
+        s"Defect in zio.ZContext: ${missingServices} statically known to be contained within the environment are missing"
       )
     }
 
     if (set.isEmpty) self
     else
-      new ZMetadata(filterKeys(self.map)(tag => set.exists(taggedIsSubtype(tag, _))), index)
-        .asInstanceOf[ZMetadata[R]]
+      new ZContext(filterKeys(self.map)(tag => set.exists(taggedIsSubtype(tag, _))), index)
+        .asInstanceOf[ZContext[R]]
   }
 
   /**
@@ -83,20 +83,20 @@ final class ZMetadata[+R] private (
     map.size
 
   override def toString: String =
-    s"ZMetadata($map)"
+    s"ZContext($map)"
 
   /**
    * Combines this environment with the specified environment.
    */
-  def union[R1: Tag](that: ZMetadata[R1]): ZMetadata[R with R1] =
+  def union[R1: Tag](that: ZContext[R1]): ZContext[R with R1] =
     self.unionAll[R1](that.prune)
 
   /**
    * Combines this environment with the specified environment. In the event of service collisions, which may not be
    * reflected in statically known types, the right hand side will be preferred.
    */
-  def unionAll[R1](that: ZMetadata[R1]): ZMetadata[R with R1] =
-    new ZMetadata(
+  def unionAll[R1](that: ZContext[R1]): ZContext[R with R1] =
+    new ZContext(
       self.map ++ that.map.map { case (tag, (service, index)) => (tag, (service, self.index + index)) },
       self.index + that.index
     )
@@ -115,26 +115,26 @@ final class ZMetadata[+R] private (
             service = curService.asInstanceOf[A]
           }
         }
-        if (service == null) throw new Error(s"Defect in zio.meta.ZMetadata: Could not find ${tag} inside ${self}")
+        if (service == null) throw new Error(s"Defect in zio.meta.ZContext: Could not find ${tag} inside ${self}")
         else {
           self.cache = self.cache + (tag -> service)
           service
         }
     }
 
-  def upcast[R1](implicit ev: R <:< R1): ZMetadata[R1] =
-    new ZMetadata(map, index)
+  def upcast[R1](implicit ev: R <:< R1): ZContext[R1] =
+    new ZContext(map, index)
 
   /**
    * Updates a service in the environment.
    */
-  def update[A >: R: Tag: IsNotIntersection](f: A => A): ZMetadata[R] =
+  def update[A >: R: Tag: IsNotIntersection](f: A => A): ZContext[R] =
     self.add[A](f(get[A]))
 
   /**
    * Updates a service in the environment correponding to the specified key.
    */
-  def updateAt[K, V](k: K)(f: V => V)(implicit ev: R <:< Map[K, V], tag: Tag[Map[K, V]]): ZMetadata[R] =
+  def updateAt[K, V](k: K)(f: V => V)(implicit ev: R <:< Map[K, V], tag: Tag[Map[K, V]]): ZContext[R] =
     self.add[Map[K, V]](unsafeGet[Map[K, V]](taggedTagType(tag)).updated(k, f(getAt(k).get)))
 
   /**
@@ -149,20 +149,20 @@ final class ZMetadata[+R] private (
   //   ZLayer.succeedEnvironment(self)
 }
 
-object ZMetadata {
+object ZContext {
 
   /**
    * Constructs a new environment holding the single service.
    */
-  def apply[A: Tag: IsNotIntersection](a: A): ZMetadata[A] =
+  def apply[A: Tag: IsNotIntersection](a: A): ZContext[A] =
     empty.add[A](a)
 
   /**
    * Constructs a new environment holding the specified services. The service must be monomorphic. Parameterized
    * services are not supported.
    */
-  def apply[A: Tag: IsNotIntersection, B: Tag: IsNotIntersection](a: A, b: B): ZMetadata[A with B] =
-    ZMetadata(a).add[B](b)
+  def apply[A: Tag: IsNotIntersection, B: Tag: IsNotIntersection](a: A, b: B): ZContext[A with B] =
+    ZContext(a).add[B](b)
 
   /**
    * Constructs a new environment holding the specified services. The service must be monomorphic. Parameterized
@@ -172,8 +172,8 @@ object ZMetadata {
       a: A,
       b: B,
       c: C
-  ): ZMetadata[A with B with C] =
-    ZMetadata(a).add(b).add[C](c)
+  ): ZContext[A with B with C] =
+    ZContext(a).add(b).add[C](c)
 
   /**
    * Constructs a new environment holding the specified services. The service must be monomorphic. Parameterized
@@ -184,8 +184,8 @@ object ZMetadata {
       b: B,
       c: C,
       d: D
-  ): ZMetadata[A with B with C with D] =
-    ZMetadata(a).add(b).add(c).add[D](d)
+  ): ZContext[A with B with C with D] =
+    ZContext(a).add(b).add(c).add[D](d)
 
   /**
    * Constructs a new environment holding the specified services. The service must be monomorphic. Parameterized
@@ -203,20 +203,20 @@ object ZMetadata {
       c: C,
       d: D,
       e: E
-  ): ZMetadata[A with B with C with D with E] =
-    ZMetadata(a).add(b).add(c).add(d).add[E](e)
+  ): ZContext[A with B with C with D with E] =
+    ZContext(a).add(b).add(c).add(d).add[E](e)
 
   /**
    * The empty environment containing no services.
    */
-  lazy val empty: ZMetadata[Any] =
-    new ZMetadata[AnyRef](Map.empty, 0, Map(taggedTagType(TaggedAnyRef) -> (())))
+  lazy val empty: ZContext[Any] =
+    new ZContext[AnyRef](Map.empty, 0, Map(taggedTagType(TaggedAnyRef) -> (())))
 
   /**
    * The default ZIO environment.
    */
-  // lazy val default: ZMetadata[Clock with Console with Random with System] =
-  //   ZMetadata[Clock, Console, Random, System](
+  // lazy val default: ZContext[Clock with Console with Random with System] =
+  //   ZContext[Clock, Console, Random, System](
   //     Clock.ClockLive,
   //     Console.ConsoleLive,
   //     Random.RandomLive,
