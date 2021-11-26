@@ -95,7 +95,7 @@ lazy val coreJVM = core.jvm
 lazy val coreTests = crossProject(JSPlatform, JVMPlatform)
   .in(file("core-tests"))
   .dependsOn(macros, core)
-  .settings(stdSettings("core-tests"))
+  .settings(stdSettings("core-tests", Scala3x, Scala213))
   .settings(crossProjectSettings)
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
   .settings(buildInfoSettings("zio.meta.tests"))
