@@ -1,11 +1,11 @@
 package zio.meta
-
-
+import scala.quoted.*
 
 trait ContractModuleVersionSpecific { this: ContractModule => }
 
 trait ServiceContractCompanionVersionSpecific:
-    inline def serviceContract[T]: ServiceContract = ${ ServiceContractMacros.getServiceContract[T] }
+   self: ServiceContract.type =>
+   inline def serviceContract[T]: ServiceContract = ${ ServiceContractMacros.getServiceContract[T] }
 
   // given derived[T:Type](using Quotes)(using Type[ServiceContract])(using Type[ServiceContract.Of[T]]): Expr[ServiceContract.Of[T]] =
   //   import quotes.reflect.*
@@ -15,7 +15,6 @@ trait ServiceContractCompanionVersionSpecific:
 end ServiceContractCompanionVersionSpecific
 
 
-import scala.quoted.*
 private object ServiceContractMacros {
   def getServiceContract[T](using Type[T], Quotes):Expr[ServiceContract] =
     import quotes.reflect.*

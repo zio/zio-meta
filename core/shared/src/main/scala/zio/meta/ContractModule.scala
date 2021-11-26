@@ -27,7 +27,7 @@ trait ServiceContract {
 }
 
 object ServiceContract extends ServiceContractCompanionVersionSpecific {
-  def apply[T]: ServiceContract = new ServiceContract {
+  private[meta] def apply[T]: ServiceContract = new ServiceContract {
     type ContractType = T
   }
 

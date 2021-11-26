@@ -2,7 +2,9 @@ package zio.meta
 
 trait ContractModuleVersionSpecific {}
 
-trait ServiceContractCompanionVersionSpecific {}
+trait ServiceContractCompanionVersionSpecific { self: ServiceContract.type =>
+  def serviceContract[T]: ServiceContract = ServiceContract[T]
+}
 
 // trait ServiceContract {
 //   type ContractType
