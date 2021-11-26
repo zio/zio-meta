@@ -26,7 +26,7 @@ addCommandAlias("check", "; scalafmtSbtCheck; scalafmtCheckAll; compile:scalafix
 addCommandAlias(
   "testJVM",
   Seq(
-    "internalMacrosJVM/test",
+    "macrosJVM/test",
     "coreJVM/test",
     "coreTestsJVM/test"
   ).mkString(";")
@@ -34,7 +34,7 @@ addCommandAlias(
 addCommandAlias(
   "testJS",
   Seq(
-    "internalMacrosJS/test",
+    "macrosJS/test",
     "coreJS/test",
     "coreTestsJS/test"
   ).mkString(";")
@@ -58,22 +58,11 @@ lazy val root = project
     coreJS,
     coreTestsJVM,
     coreTestsJS,
-    internalMacrosJVM,
-    internalMacrosJS,
-    internalMacrosNative
+    macrosJVM,
+    macrosJS,
+    macrosNative
     // docs
   )
-
-lazy val internalMacros = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-  .in(file("internal-macros"))
-  .settings(stdSettings("zio-meta-internal-macros", Scala3x, Scala213))
-  .settings(crossProjectSettings)
-  .settings(macroDefinitionSettings)
-  .settings(macroExpansionSettings)
-
-lazy val internalMacrosJVM    = internalMacros.jvm.settings(dottySettings)
-lazy val internalMacrosJS     = internalMacros.js.settings(dottySettings)
-lazy val internalMacrosNative = internalMacros.native.settings(nativeSettings)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .in(file("core"))
@@ -88,7 +77,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   )
   .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(internalMacros)
+  .dependsOn(macros)
 
 lazy val coreJS = core.js
   .settings(jsSettings)
@@ -123,6 +112,17 @@ lazy val coreTestsJVM = coreTests.jvm
 lazy val coreTestsJS = coreTests.js
   .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
   .settings(dottySettings)
+
+lazy val macros = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .in(file("macros"))
+  .settings(stdSettings("zio-meta-macros", Scala3x, Scala213))
+  .settings(crossProjectSettings)
+  .settings(macroDefinitionSettings)
+  .settings(macroExpansionSettings)
+
+lazy val macrosJVM    = macros.jvm.settings(dottySettings)
+lazy val macrosJS     = macros.js.settings(dottySettings)
+lazy val macrosNative = macros.native.settings(nativeSettings)
 
 // lazy val docs = project
 //   .in(file("zio-meta-docs"))
