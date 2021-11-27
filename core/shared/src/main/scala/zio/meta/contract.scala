@@ -30,7 +30,6 @@ object ServiceContract extends ServiceContractCompanionVersionSpecific {
   private[meta] def apply[T]: ServiceContract = new ServiceContract {
     type ContractType = T
   }
-
   // trait Of[T] extends ServiceContract { final type ContractType = T }
   // object Of  {
 
@@ -42,4 +41,13 @@ object ServiceContract extends ServiceContractCompanionVersionSpecific {
   //     implicit val t:Type[T] = summon[Type[T]]
   //     //'{ServiceContract.Of[${t.Underlying}]}
   // }
+}
+
+trait ServiceContractFor[T] {
+  def serviceContract: ServiceContract
+}
+
+object ServiceContractFor extends ServiceContractForCompanionVersionSpecific {
+  implicit def apply[T](implicit serviceContractFor: ServiceContractFor[T]): ServiceContractFor[T] =
+    serviceContractFor
 }

@@ -15,8 +15,9 @@ trait ServiceContractCompanionVersionSpecific:
 end ServiceContractCompanionVersionSpecific
 
 
-private object ServiceContractMacros {
+private object ServiceContractMacros:
   def getServiceContract[T](using Type[T], Quotes):Expr[ServiceContract] =
     import quotes.reflect.*
     '{ServiceContract.apply[T]}
-}
+end ServiceContractMacros
+
