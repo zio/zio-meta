@@ -18,7 +18,7 @@ trait ContractModule extends ContractModuleVersionSpecific {}
 trait OperationContract[T]
 trait DataContract[T]
 
-object contract extends ContractModule
+object contract extends ContractModule {}
 
 trait ServiceContract {
   type ContractType
@@ -41,6 +41,15 @@ object ServiceContract extends ServiceContractCompanionVersionSpecific {
   //     implicit val t:Type[T] = summon[Type[T]]
   //     //'{ServiceContract.Of[${t.Underlying}]}
   // }
+
+  final case class Descriptor[+Attribs](
+      contractType: TypeDescriptor[Attribs]
+  )
+
+  trait TypeLevel {
+    type ContractType
+  }
+
 }
 
 trait ServiceContractFor[T] {
@@ -50,4 +59,10 @@ trait ServiceContractFor[T] {
 object ServiceContractFor extends ServiceContractForCompanionVersionSpecific {
   implicit def apply[T](implicit serviceContractFor: ServiceContractFor[T]): ServiceContractFor[T] =
     serviceContractFor
+}
+
+object example {
+  val serviceContract1 = ServiceContract.Descriptor(
+    contractType = TypeDescriptor.reference("zio.meta.TestService")
+  )
 }
