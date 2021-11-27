@@ -16,6 +16,17 @@ object TypeMoniker {
   }
 }
 
-final case class MonikerFor[T](tag: Tag[T]) extends AnyVal {
-  def name: String = tag.tag.longName
+sealed trait MonikerFor[+T] {
+  def name: String
+}
+
+object MonikerFor {
+  def apply(name: String): MonikerFor[Nothing] = WithoutTag(name)
+
+  def fromTag[T](tag: Tag[T]): MonikerFor[T] = FromTag(tag)
+
+  final case class WithoutTag(name: String) extends MonikerFor[Nothing]
+  final case class FromTag[T](tag: Tag[T]) extends MonikerFor[T] {
+    def name: String = tag.tag.longName
+  }
 }

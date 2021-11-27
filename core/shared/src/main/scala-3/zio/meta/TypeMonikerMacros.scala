@@ -49,12 +49,12 @@ object TypeMonikerMacros {
       case Some(ct) => ct
       case None =>
         report.error(
-          s"Unable to find a ClassTag for type ${Type.show[T]}",
+          s"Unable to find a Tag for type ${Type.show[T]}",
           Position.ofMacroExpansion
         )
         throw new Exception("Error while applying macro")
     }
 
-    '{MonikerFor($tag)}
+    '{MonikerFor.fromTag($tag)}
   }
 }
