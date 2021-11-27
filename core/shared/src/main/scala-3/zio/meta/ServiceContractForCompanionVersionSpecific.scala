@@ -7,7 +7,7 @@ trait ServiceContractForCompanionVersionSpecific:
 
   given serviceContractFor[T]: ServiceContractFor[T] =
     new ServiceContractFor[T] {
-      inline override def serviceContract: ServiceContract = ServiceContract.serviceContract[T]
+      inline override def serviceContract: ServiceContract[Unit] = ServiceContract.serviceContract[T]
     }
 
 end ServiceContractForCompanionVersionSpecific

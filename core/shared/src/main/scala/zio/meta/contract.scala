@@ -20,16 +20,10 @@ trait DataContract[T]
 
 object contract extends ContractModule {}
 
-trait ServiceContract {
-  type ContractType
-  // type ContractLabel <: String
-  // def contractLabel: ContractLabel
-}
+final case class ServiceContract[+Attribs](contractType: TypeDescriptor[Attribs])
 
 object ServiceContract extends ServiceContractCompanionVersionSpecific {
-  private[meta] def apply[T]: ServiceContract = new ServiceContract {
-    type ContractType = T
-  }
+
   // trait Of[T] extends ServiceContract { final type ContractType = T }
   // object Of  {
 
@@ -53,7 +47,7 @@ object ServiceContract extends ServiceContractCompanionVersionSpecific {
 }
 
 trait ServiceContractFor[T] {
-  def serviceContract: ServiceContract
+  def serviceContract: ServiceContract[Unit]
 }
 
 object ServiceContractFor extends ServiceContractForCompanionVersionSpecific {

@@ -1,8 +1,7 @@
 package zio.meta
 import zio.test.*
 
-object NamingSpec extends DefaultRunnableSpec {
-  import metaverse.*
+object NamingSpec extends DefaultRunnableSpec with NamingModule {
 
   def spec = suite("NamingSpec")(
     suite("When kind is Text")(
