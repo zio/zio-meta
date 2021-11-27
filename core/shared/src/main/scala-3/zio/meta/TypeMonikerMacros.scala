@@ -1,6 +1,7 @@
 package zio.meta
 import scala.quoted.*
-import scala.reflect.ClassTag
+import izumi.reflect.Tag
+import zio.meta.internals.*
 
 object TypeMonikerMacros {
   import TypeMoniker.Moniker
@@ -16,10 +17,23 @@ object TypeMonikerMacros {
       }
 
     val tpr = TypeRepr.of[T]
-    val typeParams = tpr match {
+    println(s"T: ${tpr.show}")
+    val args = tpr match {
       case a:AppliedType => a.args
       case _ => Nil
     }
+
+
+    val typeParams = args.map {
+      //TODO: Correct this behavior
+      case tp @ TypeBounds(lo, hi) =>
+        println(s"TypeBounds: ${lo.show}, ${hi.show}")
+        lo
+      case tp => println(s"TypeParam: ${tp.show}")
+        tp
+    }
+
+    println(s"typeParams: ${typeParams.map(_.show).mkString(", ")}")
 
     val selfMoniker = getMonikerFor[T]
     val params =
@@ -31,7 +45,7 @@ object TypeMonikerMacros {
   private def getMonikerFor[T](using Type[T], Quotes): Expr[MonikerFor[T]] = {
     import quotes.reflect._
 
-    val classTag = Expr.summon[ClassTag[T]] match {
+    val tag = Expr.summon[Tag[T]] match {
       case Some(ct) => ct
       case None =>
         report.error(
@@ -41,6 +55,6 @@ object TypeMonikerMacros {
         throw new Exception("Error while applying macro")
     }
 
-    '{MonikerFor($classTag)}
+    '{MonikerFor($tag)}
   }
 }

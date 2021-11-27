@@ -1,6 +1,6 @@
 package zio.meta
 
-import scala.reflect.ClassTag
+import izumi.reflect.Tag
 
 trait TypeMoniker[T] {
   import TypeMoniker.*
@@ -9,13 +9,13 @@ trait TypeMoniker[T] {
 
 object TypeMoniker {
   final case class Moniker(self: MonikerFor[_], params: List[Moniker] = Nil) {
-    def name:String = params match {
+    def name: String = params match {
       case Nil => self.name
-      case _ => self.name + params.map(_.name).mkString("[", ", ", "]")
+      case _   => self.name + params.map(_.name).mkString("[", ", ", "]")
     }
   }
 }
 
-final case class MonikerFor[T](classTag: ClassTag[T]) extends AnyVal {
-  def name: String = classTag.runtimeClass.getName
+final case class MonikerFor[T](tag: Tag[T]) extends AnyVal {
+  def name: String = tag.tag.longName
 }
