@@ -1,30 +1,5 @@
 package zio.meta
 
-// final case class Descriptor(caseValue: DescriptorCase[Descriptor]) { self =>
-//   def fold[Z](f: DescriptorCase[Z] => Z): Z = caseValue match {
-//     case c @ DescriptorCase.TypeDescriptor(_) => f(c)
-//   }
-
-// }
-
-// object Descriptor {
-//   sealed trait DescriptorCase[+A] { self =>
-//     import DescriptorCase.*
-
-//     def map[B](f: A => B): DescriptorCase[B] = self match {
-//       case TypeDescriptor(name) => TypeDescriptor(name)
-//       case _                    => ???
-//     }
-//   }
-
-//   object DescriptorCase {
-//     def typeDescriptor(name: String): DescriptorCase[Nothing] = TypeDescriptor(name)
-
-//     final case class TypeDescriptor(name: String)                               extends DescriptorCase[Nothing]
-//     final case class FunctionDescriptor[A](name: Option[String], args: List[A]) extends DescriptorCase[Nothing]
-//   }
-// }
-
 object descriptor {
   object standard {
     sealed trait TypeDescriptor[+Attribs]
@@ -131,20 +106,6 @@ object recursionPlayground {
     final case class FuncInstance[+Attribs](caseValue: FunctionCase[Attribs, Descriptor[Attribs]]) extends Func[Attribs]
   }
 
-  // final case class Func[+Attribs](caseValue: FunctionCase[Attribs, Descriptor[Attribs]])
-
-  // final case class Descriptor[+Attribs](caseValue: DescriptorCase[Attribs, Descriptor[Attribs]]) { self =>
-  //   def fold[Z](f: DescriptorCase[Attribs, Z] => Z): Z = caseValue match {
-  //     case c @ DescriptorCase.VariableCase(_, _) => f(c)
-  //     case c @ DescriptorCase.ReferenceCase(_, _, _) =>
-  //       val typeArgs = c.typeVars.map(_.fold(f))
-  //       f(DescriptorCase.ReferenceCase(c.name, typeArgs, c.attributes))
-  //     case c @ DescriptorCase.FunctionCase(_, _, _, _) =>
-  //       val args       = c.args.map(_.fold(f))
-  //       val returnType = c.returnType.fold(f)
-  //       f(DescriptorCase.FunctionCase(c.name, args, returnType, c.attributes))
-  //   }
-  // }
   object Descriptor {
     def apply[Attribs](caseValue: DescriptorCase[Attribs, Descriptor[Attribs]]): Descriptor[Attribs]    = ???
     def variable[Attribs](caseValue: DescriptorCase[Attribs, Descriptor[Attribs]]): Descriptor[Attribs] = ???
