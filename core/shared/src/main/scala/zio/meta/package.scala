@@ -9,4 +9,6 @@ package object meta extends VersionSpecific {
     def apply[A](implicit isNotIntersection: IsNotIntersection[A]): IsNotIntersection[A] = isNotIntersection
   }
 
+  type MetaTag[T] = ZMetaTag[Any, T]
+  type Meta[T]    = ZMeta[Any, T]
 }

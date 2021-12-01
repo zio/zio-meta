@@ -4,11 +4,11 @@ import izumi.reflect.Tag
 
 trait TypeMoniker[T] {
   import TypeMoniker.*
-  def moniker: Moniker
+  def moniker: Moniker[T]
 }
 
 object TypeMoniker {
-  final case class Moniker(self: MonikerFor[_], params: List[Moniker] = Nil) {
+  final case class Moniker[T](self: MonikerFor[T], params: List[Moniker[?]] = Nil) {
     def name: String = params match {
       case Nil => self.name
       case _   => self.name + params.map(_.name).mkString("[", ", ", "]")
