@@ -1,3 +1,4 @@
+import Dependencies.Version
 import BuildHelper._
 
 inThisBuild(
@@ -44,9 +45,6 @@ addCommandAlias(
   ";internalMacrosNative/test:compile"
 )
 
-val zioVersion          = "1.0.12"
-val izumiReflectVersion = "2.0.8"
-
 lazy val root = project
   .in(file("."))
   .settings(
@@ -58,6 +56,8 @@ lazy val root = project
     coreJS,
     coreTestsJVM,
     coreTestsJS,
+    examplesJVM,
+    exampleJS,
     macrosJVM,
     macrosJS,
     macrosNative
@@ -71,8 +71,8 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(buildInfoSettings("zio.meta"))
   .settings(
     libraryDependencies ++= Seq(
-      "dev.zio" %%% "izumi-reflect" % izumiReflectVersion,
-      "dev.zio" %%% "zio"           % zioVersion % Test
+      "dev.zio" %%% "izumi-reflect" % Version.`izumi-reflect`,
+      "dev.zio" %%% "zio"           % Version.zio % Test
     )
   )
   .settings(macroDefinitionSettings)
@@ -84,12 +84,12 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
 lazy val coreJS = core.js
   .settings(jsSettings)
   // .settings(dottySettings)
-  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % Version.zio % Test)
   .settings(scalaJSUseMainModuleInitializer := true)
 
 lazy val coreJVM = core.jvm
   .settings(dottySettings)
-  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % Version.zio % Test)
   .settings(scalaReflectTestSettings)
 
 lazy val coreTests = crossProject(JSPlatform, JVMPlatform)
@@ -106,12 +106,33 @@ lazy val coreTests = crossProject(JSPlatform, JVMPlatform)
 
 lazy val coreTestsJVM = coreTests.jvm
   .settings(dottySettings)
-  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % Version.zio % Test)
   .configure(_.enablePlugins(JCStressPlugin))
   .settings(replSettings)
 
 lazy val coreTestsJS = coreTests.js
-  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % zioVersion % Test)
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % Version.zio % Test)
+  .settings(dottySettings)
+
+lazy val examples = crossProject(JSPlatform, JVMPlatform)
+  .in(file("examples"))
+  .dependsOn(macros, core)
+  .settings(stdSettings("examples", Scala3x, Scala213))
+  .settings(crossProjectSettings)
+  .settings(testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"))
+  .settings(buildInfoSettings("zio.meta.examples"))
+  .settings(publish / skip := true)
+  //   Compile / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat
+  // )
+  .enablePlugins(BuildInfoPlugin)
+
+lazy val examplesJVM = examples.jvm
+  .settings(dottySettings)
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % Version.zio % Test)
+  .settings(replSettings)
+
+lazy val exampleJS = examples.js
+  .settings(libraryDependencies += "dev.zio" %%% "zio-test-sbt" % Version.zio % Test)
   .settings(dottySettings)
 
 lazy val macros = crossProject(JSPlatform, JVMPlatform, NativePlatform)
@@ -121,7 +142,24 @@ lazy val macros = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .settings(macroDefinitionSettings)
   .settings(macroExpansionSettings)
 
-lazy val macrosJVM    = macros.jvm.settings(dottySettings)
+lazy val macrosJVM = macros.jvm
+  .settings(dottySettings)
+  .settings(
+    libraryDependencies ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, _)) =>
+          Seq(
+            "org.scalameta" %% "scalafmt-cli" % Version.scalafmt
+          )
+        case Some((3, _)) =>
+          Seq(
+            ("org.scalameta" %% "scalafmt-cli" % Version.scalafmt).cross(CrossVersion.for3Use2_13)
+          )
+        case _ =>
+          Seq()
+      }
+    }
+  )
 lazy val macrosJS     = macros.js.settings(dottySettings)
 lazy val macrosNative = macros.native.settings(nativeSettings)
 

@@ -6,12 +6,12 @@ import zio.meta.internals.*
 object TypeMonikerMacros {
   import TypeMoniker.Moniker
 
-  inline def moniker[T]:Moniker = ${getMoniker[T]}
+  inline def moniker[T]:Moniker[T] = ${getMoniker[T]}
 
-  private def getMoniker[T](using Type[T], Quotes):Expr[Moniker] = {
+  private def getMoniker[T](using Type[T], Quotes):Expr[Moniker[T]] = {
     import quotes.reflect._
 
-    def getMonikerShim(tpr:TypeRepr)(using Quotes):Expr[Moniker] =
+    def getMonikerShim(tpr:TypeRepr)(using Quotes):Expr[Moniker[?]] =
       tpr.asType match {
         case '[t] => getMoniker[t]
       }
