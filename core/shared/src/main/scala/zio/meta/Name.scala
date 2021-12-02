@@ -51,8 +51,10 @@ object Name {
   }
   object NameCase {
     // TODO: Flesh this out a bit more
-    case object AnonymousCase                                                               extends NameCase[Nothing]
-    final case class IdentifierCase(text: String)                                           extends NameCase[Nothing]
+    case object AnonymousCase                     extends NameCase[Nothing]
+    final case class ArtifactCase(text: String)   extends NameCase[Nothing]
+    final case class IdentifierCase(text: String) extends NameCase[Nothing]
+    // final case class LibraryCase(group:String)
     final case class TypeParamCase(text: String, variance: Variance)                        extends NameCase[Nothing]
     final case class TypeNameCase[+A](text: String, parent: Option[A], typeParams: List[A]) extends NameCase[A]
     final case class TopLevelCase(text: String, kind: MemberNameKind)                       extends NameCase[Nothing]
