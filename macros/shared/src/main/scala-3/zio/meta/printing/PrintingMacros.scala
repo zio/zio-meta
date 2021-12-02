@@ -38,6 +38,13 @@ object PrintingMacros {
 
     '{ () }
   end dumpTypeTreeImpl
+
+  inline def dump[T](inline code: => T):T = ${dumpImpl[T]('code)}
+  def dumpImpl[T](code: => Expr[T])(using Type[T])(using Quotes):Expr[T] =
+    import quotes.reflect.*
+    println(Format(Printer.TreeStructure.show(code.asTerm)))
+    code
+  end dumpImpl
 }
 
 
