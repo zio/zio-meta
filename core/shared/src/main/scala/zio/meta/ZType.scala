@@ -36,22 +36,37 @@ final case class ZType[+LeafAttributes, +BranchAttributes](
 }
 
 object ZType {
-
   sealed trait ZTypeCase[+LeafAttributes, +BranchAttributes, +A] { self =>
+    import ZTypeCase.*
 
-    def map[B](f: A => B): ZTypeCase[LeafAttributes, BranchAttributes, B] = ???
+    def map[B](f: A => B): ZTypeCase[LeafAttributes, BranchAttributes, B] = self match {
+      case ModuleCase(name, members, attributes) => ModuleCase(name, members.map(f), attributes)
+      case TypeCase(name, members, attributes)   => TypeCase(name, members.map(f), attributes)
+      case TypeRefCase(name)                     => TypeRefCase(name)
+      case TypeVarCase(name)                     => TypeVarCase(name)
+      case FunctionCase(name, attributes)        => FunctionCase(name, attributes)
+      case FieldCase(name, attributes)           => FieldCase(name, attributes)
+    }
 
   }
   // sealed trait ModuleMemberCase[+BranchAttributes, +LeafAttributes, +A] extends ZTypeCase[A]
   object ZTypeCase {
     def typeVar(name: Name): ZTypeCase[Nothing, Nothing, Nothing] = TypeVarCase(name)
-    final case class FunctionCase[+LeafAttributes](name: Name, atributes: LeafAttributes)
+
+    final case class FunctionCase[+LeafAttributes](name: Name, atributes: ZContext[LeafAttributes])
         extends ZTypeCase[LeafAttributes, Nothing, Nothing]
-    final case class ModuleCase[+BranchAttributes, +A](name: Name, members: List[A], attributes: BranchAttributes)
-        extends ZTypeCase[Nothing, BranchAttributes, A]
-    final case class TypeCase[+BranchAttributes, +A](name: Name, members: List[A], attributes: BranchAttributes)
-        extends ZTypeCase[Nothing, BranchAttributes, A]
+    final case class ModuleCase[+BranchAttributes, +A](
+        name: Name,
+        members: List[A],
+        attributes: ZContext[BranchAttributes]
+    ) extends ZTypeCase[Nothing, BranchAttributes, A]
+    final case class TypeCase[+BranchAttributes, +A](
+        name: Name,
+        members: List[A],
+        attributes: ZContext[BranchAttributes]
+    ) extends ZTypeCase[Nothing, BranchAttributes, A]
     final case class TypeRefCase(name: Name) extends ZTypeCase[Nothing, Nothing, Nothing]
+
     final case class TypeVarCase(name: Name) extends ZTypeCase[Nothing, Nothing, Nothing]
     final case class FieldCase[+LeafAttributes](name: Name, attributes: LeafAttributes)
         extends ZTypeCase[LeafAttributes, Nothing, Nothing]
