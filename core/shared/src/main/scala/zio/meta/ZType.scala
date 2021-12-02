@@ -73,16 +73,19 @@ object ZType {
         returnType: A,
         atributes: ZContext[LeafAttributes]
     ) extends ZTypeCase[LeafAttributes, Nothing, A]
+
     final case class ModuleCase[+BranchAttributes, +A](
         name: Name,
         members: List[A],
         attributes: ZContext[BranchAttributes]
     ) extends ZTypeCase[Nothing, BranchAttributes, A]
+
     final case class TypeCase[+BranchAttributes, +A](
         name: Name,
         members: List[A],
         attributes: ZContext[BranchAttributes]
     ) extends ZTypeCase[Nothing, BranchAttributes, A]
+
     final case class TypeRefCase(name: Name) extends ZTypeCase[Nothing, Nothing, Nothing]
 
     final case class TypeVarCase(name: Name) extends ZTypeCase[Nothing, Nothing, Nothing]
