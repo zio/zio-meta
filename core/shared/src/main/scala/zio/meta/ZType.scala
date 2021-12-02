@@ -12,8 +12,9 @@ final case class ZType[+LeafAttributes, +BranchAttributes](
       case c @ ModuleCase(name, members, attributes) => f(ModuleCase(name, members.map(_.fold(f)), attributes))
       case c @ TypeCase(name, members, attributes)   => f(TypeCase(name, members.map(_.fold(f)), attributes))
       case c @ TypeRefCase(_)                        => f(c)
-      case c @ FunctionCase(_, _)                    => f(c)
-      case c @ FieldCase(_, _)                       => f(c)
+      case c @ FunctionCase(name, typeVars, attributes) =>
+        f(FunctionCase(name, typeVars.map(_.fold(f)), attributes))
+      case c @ FieldCase(_, _) => f(c)
     }
 
   def transform[LeafAttributes2, BranchAttributes2](
@@ -28,10 +29,11 @@ final case class ZType[+LeafAttributes, +BranchAttributes](
         ZType(f(ModuleCase(name, members.map(_.transform(f)), attributes))) // ZType(f(c))
       case c @ TypeCase(name, members, attributes) =>
         ZType(f(TypeCase(name, members.map(_.transform(f)), attributes))) // ZType(f(c))
-      case c @ TypeRefCase(_)     => ZType(f(c))
-      case c @ TypeVarCase(_)     => ZType(f(c))
-      case c @ FunctionCase(_, _) => ZType(f(c))
-      case c @ FieldCase(_, _)    => ZType(f(c))
+      case c @ TypeRefCase(_) => ZType(f(c))
+      case c @ TypeVarCase(_) => ZType(f(c))
+      case c @ FunctionCase(name, typeVars, attributes) =>
+        ZType(f(FunctionCase(name, typeVars.map(_.transform(f)), attributes)))
+      case c @ FieldCase(_, _) => ZType(f(c))
     }
 }
 
@@ -40,12 +42,12 @@ object ZType {
     import ZTypeCase.*
 
     def map[B](f: A => B): ZTypeCase[LeafAttributes, BranchAttributes, B] = self match {
-      case ModuleCase(name, members, attributes) => ModuleCase(name, members.map(f), attributes)
-      case TypeCase(name, members, attributes)   => TypeCase(name, members.map(f), attributes)
-      case TypeRefCase(name)                     => TypeRefCase(name)
-      case TypeVarCase(name)                     => TypeVarCase(name)
-      case FunctionCase(name, attributes)        => FunctionCase(name, attributes)
-      case FieldCase(name, attributes)           => FieldCase(name, attributes)
+      case ModuleCase(name, members, attributes)    => ModuleCase(name, members.map(f), attributes)
+      case TypeCase(name, members, attributes)      => TypeCase(name, members.map(f), attributes)
+      case TypeRefCase(name)                        => TypeRefCase(name)
+      case TypeVarCase(name)                        => TypeVarCase(name)
+      case FunctionCase(name, typeVars, attributes) => FunctionCase(name, typeVars.map(f), attributes)
+      case FieldCase(name, attributes)              => FieldCase(name, attributes)
     }
 
   }
@@ -53,8 +55,11 @@ object ZType {
   object ZTypeCase {
     def typeVar(name: Name): ZTypeCase[Nothing, Nothing, Nothing] = TypeVarCase(name)
 
-    final case class FunctionCase[+LeafAttributes](name: Name, atributes: ZContext[LeafAttributes])
-        extends ZTypeCase[LeafAttributes, Nothing, Nothing]
+    final case class FunctionCase[+LeafAttributes, +A](
+        name: Name,
+        typeVars: List[A],
+        atributes: ZContext[LeafAttributes]
+    ) extends ZTypeCase[LeafAttributes, Nothing, A]
     final case class ModuleCase[+BranchAttributes, +A](
         name: Name,
         members: List[A],
