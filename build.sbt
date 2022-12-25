@@ -168,6 +168,14 @@ lazy val macrosNative = macros.native.settings(nativeSettings)
      publish / skip := true,
      moduleName := "zio-meta-docs",
      scalacOptions -= "-Yno-imports",
-     scalacOptions -= "-Xfatal-warnings"
+     scalacOptions -= "-Xfatal-warnings",
+     projectName := "ZIO Meta",
+     badgeInfo := Some(
+       BadgeInfo(
+         artifact = "zio-meta_2.12",
+         projectStage = ProjectStage.Experimental
+       )
+     ),
+     docsPublishBranch := "main"
    )
    .enablePlugins(WebsitePlugin)
