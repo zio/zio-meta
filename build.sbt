@@ -162,20 +162,16 @@ lazy val macrosJVM = macros.jvm
 lazy val macrosJS     = macros.js.settings(dottySettings)
 lazy val macrosNative = macros.native.settings(nativeSettings)
 
- lazy val docs = project
-   .in(file("zio-meta-docs"))
-   .settings(
-     publish / skip := true,
-     moduleName := "zio-meta-docs",
-     scalacOptions -= "-Yno-imports",
-     scalacOptions -= "-Xfatal-warnings",
-     projectName := "ZIO Meta",
-     badgeInfo := Some(
-       BadgeInfo(
-         artifact = "zio-meta_2.12",
-         projectStage = ProjectStage.Experimental
-       )
-     ),
-     docsPublishBranch := "main"
-   )
-   .enablePlugins(WebsitePlugin)
+lazy val docs = project
+  .in(file("zio-meta-docs"))
+  .settings(
+    publish / skip := true,
+    moduleName     := "zio-meta-docs",
+    scalacOptions -= "-Yno-imports",
+    scalacOptions -= "-Xfatal-warnings",
+    projectName := "ZIO Meta",
+    mainModuleName := (coreJVM / moduleName).value,
+    projectStage := ProjectStage.Experimental,
+    docsPublishBranch := "main"
+  )
+  .enablePlugins(WebsitePlugin)
