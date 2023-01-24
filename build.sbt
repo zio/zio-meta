@@ -169,9 +169,9 @@ lazy val docs = project
     moduleName     := "zio-meta-docs",
     scalacOptions -= "-Yno-imports",
     scalacOptions -= "-Xfatal-warnings",
-    projectName := "ZIO Meta",
-    mainModuleName := (coreJVM / moduleName).value,
-    projectStage := ProjectStage.Experimental,
+    projectName       := "ZIO Meta",
+    mainModuleName    := (coreJVM / moduleName).value,
+    projectStage      := ProjectStage.Experimental,
     docsPublishBranch := "main"
   )
   .enablePlugins(WebsitePlugin)
