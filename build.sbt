@@ -4,7 +4,7 @@ import BuildHelper._
 inThisBuild(
   List(
     organization := "dev.zio",
-    homepage     := Some(url("https://zio.github.io/zio-meta/")),
+    homepage     := Some(url("https://zio.dev/zio-meta/")),
     licenses     := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
@@ -61,7 +61,6 @@ lazy val root = project
     macrosJVM,
     macrosJS,
     macrosNative
-    // docs
   )
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
@@ -163,19 +162,16 @@ lazy val macrosJVM = macros.jvm
 lazy val macrosJS     = macros.js.settings(dottySettings)
 lazy val macrosNative = macros.native.settings(nativeSettings)
 
-// lazy val docs = project
-//   .in(file("zio-meta-docs"))
-//   .settings(stdSettings("zio-meta"))
-//   .settings(
-//     publish / skip := true,
-//     moduleName := "zio-meta-docs",
-//     scalacOptions -= "-Yno-imports",
-//     scalacOptions -= "-Xfatal-warnings",
-//     ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(coreJVM),
-//     ScalaUnidoc / unidoc / target := (LocalRootProject / baseDirectory).value / "website" / "static" / "api",
-//     cleanFiles += (ScalaUnidoc / unidoc / target).value,
-//     docusaurusCreateSite := docusaurusCreateSite.dependsOn(Compile / unidoc).value,
-//     docusaurusPublishGhpages := docusaurusPublishGhpages.dependsOn(Compile / unidoc).value
-//   )
-//   .dependsOn(coreJVM)
-//   .enablePlugins(MdocPlugin, DocusaurusPlugin, ScalaUnidocPlugin)
+lazy val docs = project
+  .in(file("zio-meta-docs"))
+  .settings(
+    publish / skip := true,
+    moduleName     := "zio-meta-docs",
+    scalacOptions -= "-Yno-imports",
+    scalacOptions -= "-Xfatal-warnings",
+    projectName       := "ZIO Meta",
+    mainModuleName    := (coreJVM / moduleName).value,
+    projectStage      := ProjectStage.Experimental,
+    docsPublishBranch := "main"
+  )
+  .enablePlugins(WebsitePlugin)
